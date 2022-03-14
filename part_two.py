@@ -1,6 +1,7 @@
 import sys
 import numpy
 import math
+from scipy.sparse import diags
 
 numpy.set_printoptions(threshold=sys.maxsize, precision=3)
 
@@ -86,9 +87,16 @@ A = numpy.zeros((Nx+2, Ny+2))
 
 
 def qn1b():
-    boundary(A, x, y)
-    # Remember: as solution "creeps" in from the edges,
-    # number of steps MUST AT LEAST be equal to
-    # number of inner meshpoints/2 (unless you have a better
-    # estimate for the solution than zeros() )
-    relax(A, maxiter, 0.00001)
+    n = 4
+    # Generating diagonal matrix via magic
+    A = diags([1, 2, 1], [-1, 0, 1], shape=(n-2, n-2), dtype=int).toarray()
+    B = diags([-1, 4, -1], [-1, 0, 1], shape=(n-2, n-2)).toarray()
+    Z = numpy.zeros_like(B)
+    S = -numpy.identity(n-2, int)
+    Q = numpy.stack([Z, S, B])
+    B = Q[A]
+    C = B.swapaxes(1, 2).reshape((n-2)*(n-2), -1)
+    print(C)
+
+
+qn1b()
