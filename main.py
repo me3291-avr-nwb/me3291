@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from part_one import qn1a
+# from part_one import qn1a
+from part_two import qn1b
 
 
 def main():
-    print("ok")
+    qn1b()
 
 
 if __name__ == "__main__":

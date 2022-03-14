@@ -11,8 +11,8 @@ tempx = np.arange(0, 1.04, 0.04)
 tempy = np.flip(np.arange(0, 1.04, 0.04))
 
 tempx, tempy = np.meshgrid(tempx, tempy)
-print(tempx)
-print(tempy)
+# print(tempx)
+# print(tempy)
 
 
 def plotMap(U, i, ax=None):
