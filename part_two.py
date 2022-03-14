@@ -1,46 +1,9 @@
 import sys
-import numpy
+import numpy as np
 import math
-from scipy.sparse import diags
+from scipy.sparse import diags, linalg, csr_matrix
 
-numpy.set_printoptions(threshold=sys.maxsize, precision=3)
-
-
-def relax(A, maxsteps, convergence):
-    """
-    Relaxes the matrix A until the sum of the absolute differences
-    between the previous step and the next step (divided by the number of
-    elements in A) is below convergence, or maxsteps is reached.
-
-    Input:
-     - A: matrix to relax
-     - maxsteps, convergence: Convergence criterions
-
-    Output:
-     - A is relaxed when this method returns
-    """
-
-    iterations = 0
-    diff = convergence + 1
-
-    Nx = A.shape[1]
-    Ny = A.shape[0]
-    print(A)
-    while iterations < maxsteps and diff > convergence:
-        # Loop over all *INNER* points and relax
-        Atemp = A.copy()
-        diff = 0.0
-
-        for y in range(1, Ny-1):
-            for x in range(1, Ny-1):
-                A[y, x] = 0.25*(Atemp[y, x+1]+Atemp[y, x-1] +
-                                Atemp[y+1, x]+Atemp[y-1, x])
-                diff += math.fabs(A[y, x] - Atemp[y, x])
-
-        diff /= (Nx*Ny)
-        iterations += 1
-        print("Iteration #", iterations, ", diff =", diff)
-    print(A)
+np.set_printoptions(threshold=sys.maxsize, precision=3)
 
 
 def boundary(A, x, y):
@@ -81,22 +44,60 @@ Nx = 2
 Ny = 2
 maxiter = 50
 
-x = numpy.linspace(0, 1, num=Nx+2)  # Also include edges
-y = numpy.linspace(0, 1, num=Ny+2)
-A = numpy.zeros((Nx+2, Ny+2))
+x = np.linspace(0, 1, num=Nx+2)  # Also include edges
+y = np.linspace(0, 1, num=Ny+2)
+A = np.zeros((Nx+2, Ny+2))
+
+def generateBoundary(m):
+    for index in range(1, len(m[0]) - 1):
+        m[0][index] = 1
+
+def rhsLinearSys(n):
+
+    # Generating grid with boundary edges
+    grid = np.zeros((n, n))
+    generateBoundary(grid)
+    grid_ref = np.copy(grid)
+
+    # RHS of linear system equation (converted to account for all size matrices)
+    toprowCoeff = grid_ref[0][1:-1]
+
+    #rhsCoeff_colVector all zeroes initially
+    rhsRows = (n-2)*(n-2)
+    initialRHS = np.zeros((rhsRows, 1))
+
+    for k in range(1, len(toprowCoeff)+1):
+        for p in range (0, len(toprowCoeff)):
+            rhsCoeff = toprowCoeff[p]
+            initialRHS[-k] = rhsCoeff
+
+    newRHS = initialRHS
+
+    return (newRHS)
+
 
 
 def qn1b():
     n = 4
-    # Generating diagonal matrix via magic
+    # Generating diagonal matrix - 5 point numerical scheme excluding boundary
     A = diags([1, 2, 1], [-1, 0, 1], shape=(n-2, n-2), dtype=int).toarray()
     B = diags([-1, 4, -1], [-1, 0, 1], shape=(n-2, n-2)).toarray()
-    Z = numpy.zeros_like(B)
-    S = -numpy.identity(n-2, int)
-    Q = numpy.stack([Z, S, B])
+    Z = np.zeros_like(B)
+    S = -np.identity(n-2, int)
+    Q = np.stack([Z, S, B])
     B = Q[A]
     C = B.swapaxes(1, 2).reshape((n-2)*(n-2), -1)
-    print(C)
+
+    # Inverting matrix
+    sparseC = csr_matrix(C) # Converting discretized matrix to a sparse type matrix
+    invC = linalg.inv(sparseC)
+
+    # Generating RHS matrix of the system
+    rhsSystem = rhsLinearSys(n)
 
 
-qn1b()
+    # Solving for coefficients for the matrix system of Au=b
+    centreNodes = invC @ rhsSystem
+
+    print("Centre Nodes (Coefficients of Laplace equation): \n")
+    print(centreNodes)
