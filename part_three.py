@@ -42,15 +42,15 @@ def num_scheme(curr, ref, y, x, dt, dx):
 def qn2():
     size = 25  # matrix size
     T = 1.0
-    dt = 0.0002  # time step
-    n = 500  # iterations
-    iter_to_plot = [1, 5, 10, 347]
+    dt = 0.00025  # time step
+    n = 1000  # iterations
+    iter_to_plot = [1, 40, 400, 661]
     row_subplot_num = 2
     col_subplot_num = 2
 
     dx = 1 / size
     grid = np.zeros((size+1, size+1))
-    conv_criteria = dx*dx
+    conv_criteria = (dx*dx)/6
     tempx = np.arange(0, 1+dx, dx)
     tempy = np.flip(np.arange(0, 1+dx, dx))
     tempx, tempy = np.meshgrid(tempx, tempy)
@@ -81,9 +81,11 @@ def qn2():
                 num_scheme(grid, gridRef, y, x, dt, dx)
             neumann_boundary(grid, gridRef, y)
         grid = np.copy(gridRef)
-        sum_diffs = np.subtract(grid, prevGrid).sum()
-        avf_diffs = sum_diffs / (size*size)
-        converged = True if avf_diffs < conv_criteria else False
+        # sum_diffs = np.subtract(grid, prevGrid).sum()
+        max_diffs = np.subtract(grid, prevGrid).max()
+        # avg_diffs = sum_diffs / (size*size)
+        print(max_diffs)
+        converged = True if max_diffs < conv_criteria else False
 
         # print("Iteration: {0}\n{1}\n\n".format(i, grid))
 

@@ -35,18 +35,18 @@ def qn1a():
     size = 10  # matrix size
     T = 1.0
     dt = 0.0025  # time step
-    n = 167  # iterations
-    iter_to_plot = [1, 5, 10, 166]
+    n = 400  # iterations
+    iter_to_plot = [1, 4, 40, 51]
     row_subplot_num = 2
     col_subplot_num = 2
-    conv_criteria = 5
 
     dx = 1 / size
     grid = np.zeros((size+1, size+1))
 
+    conv_criteria = (dx*dx)/6
+
     tempx = np.arange(0, 1.1, 0.1)
     tempy = np.flip(np.arange(0, 1.1, 0.1))
-
     tempx, tempy = np.meshgrid(tempx, tempy)
 
     plotted_ptr = 0
@@ -75,8 +75,10 @@ def qn1a():
                 num_scheme(grid, gridRef, y, x, dt, dx)
 
         grid = np.copy(gridRef)
-        diff = np.around(np.subtract(grid, prevGrid), conv_criteria)
-        converged = not np.any(diff)
+        max_diffs = np.subtract(grid, prevGrid).max()
+        # avg_diffs = sum_diffs / (size*size)
+        print(max_diffs)
+        converged = True if max_diffs < conv_criteria else False
 
         # print("Iteration: {0}\n{1}\n\n".format(i, grid))
 
