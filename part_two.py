@@ -32,7 +32,7 @@ def rhsLinearSys(n, grid):
 
 
 def qn1b():
-    n = 5
+    n = 10
 
     grid = np.zeros((n, n))
     generateBoundary(grid)
