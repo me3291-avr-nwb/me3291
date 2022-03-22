@@ -2,17 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def generateBoundary(m):
+def generateBoundary(m, T):
     for index in range(0, len(m[0])):
-        m[0][index] = 1
-
-
-tempx = np.arange(0, 1.1, 0.1)
-tempy = np.flip(np.arange(0, 1.1, 0.1))
-
-tempx, tempy = np.meshgrid(tempx, tempy)
-# print(tempx)
-# print(tempy)
+        m[0][index] = T
 
 
 def neumann_boundary(curr, ref, y):
@@ -21,15 +13,12 @@ def neumann_boundary(curr, ref, y):
 
     newNode = (4 * leftNode - exLeftNode)/3
     ref[y][-1] = newNode
-    # print("Exleft :{0}, left: {1}, curr: {2}".format(
-    #     exLeftNode, leftNode, newNode))
 
 
-def plotMap(U, i, ax=None):
+def plotMap(U, i, tempx, tempy, ax=None):
     # cp = ax.imshow(U, cmap=plt.get_cmap("hot"), interpolation="gaussian")
     cp = ax.plot_surface(tempx, tempy, U, cmap=plt.get_cmap(
         "hot"))
-    # # ax.invert_yaxis()
     ax.set_title("Iteration: {0}".format(i))
     ax.set_xlabel('x')
     ax.set_ylabel('y')
@@ -53,27 +42,30 @@ def num_scheme(curr, ref, y, x, dt, dx):
 def qn2():
     size = 25  # matrix size
     T = 1.0
-    dt = 0.0020  # time step
+    dt = 0.0002  # time step
     n = 500  # iterations
     iter_to_plot = [1, 5, 10, 347]
     row_subplot_num = 2
     col_subplot_num = 2
-    conv_criteria = 5
 
     dx = 1 / size
     grid = np.zeros((size+1, size+1))
+    conv_criteria = dx*dx
+    tempx = np.arange(0, 1+dx, dx)
+    tempy = np.flip(np.arange(0, 1+dx, dx))
+    tempx, tempy = np.meshgrid(tempx, tempy)
 
     plotted_ptr = 0
     plot_finish = False
-    np.set_printoptions(precision=3)
 
     if row_subplot_num * col_subplot_num != len(iter_to_plot):
         raise Exception("Invalid subplot layout, check row and col nums")
 
     fig, axes = plt.subplots(col_subplot_num, row_subplot_num, figsize=(
         8, 8), subplot_kw={"projection": "3d"})
-    generateBoundary(grid)
-    gridRef = np.copy(grid)
+    generateBoundary(grid, T)  # Generate initial boundary condition
+    gridRef = np.copy(grid)  # Deep copy matrix to create a reference
+
     converged = False
     i = 0
     while not converged:
@@ -89,8 +81,9 @@ def qn2():
                 num_scheme(grid, gridRef, y, x, dt, dx)
             neumann_boundary(grid, gridRef, y)
         grid = np.copy(gridRef)
-        diff = np.around(np.subtract(grid, prevGrid), conv_criteria)
-        converged = not np.any(diff)
+        sum_diffs = np.subtract(grid, prevGrid).sum()
+        avf_diffs = sum_diffs / (size*size)
+        converged = True if avf_diffs < conv_criteria else False
 
         # print("Iteration: {0}\n{1}\n\n".format(i, grid))
 
@@ -98,7 +91,7 @@ def qn2():
             if i == iter_to_plot[plotted_ptr]:
                 print("Iteration: {0}\n{1}\n\n".format(i, grid))
                 ax = axes.flatten()
-                plotMap(grid, i, ax[plotted_ptr])
+                plotMap(grid, i, tempx, tempy, ax[plotted_ptr])
                 plotted_ptr += 1
             if plotted_ptr == len(iter_to_plot):
                 plot_finish = True

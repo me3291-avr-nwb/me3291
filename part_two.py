@@ -3,8 +3,6 @@ import numpy as np
 import math
 from scipy.sparse import diags, linalg, csr_matrix
 
-np.set_printoptions(threshold=sys.maxsize, precision=3)
-
 
 def generateBoundary(m):
     for index in range(1, len(m[0]) - 1):
@@ -48,7 +46,8 @@ def qn1b():
     C = B.swapaxes(1, 2).reshape((n - 2) * (n - 2), -1)
 
     # Inverting matrix
-    sparseC = csr_matrix(C)  # Converting discretized matrix to a sparse type matrix
+    # Converting discretized matrix to a sparse type matrix
+    sparseC = csr_matrix(C)
     invC = linalg.inv(sparseC)
 
     # Generating RHS matrix of the system
@@ -60,5 +59,6 @@ def qn1b():
     # Rearrange to inner boundary size and replace it on the actual grid
     grid[1:-1, 1:-1] = np.flip(centreNodes).reshape(n - 2, -1)
 
-    print("Centre Nodes (Coefficients of Laplace equation): \n{0}".format(centreNodes))
+    print("Centre Nodes (Coefficients of Laplace equation): \n{0}".format(
+        centreNodes))
     print("Final plate grid:\n{0}".format(grid))

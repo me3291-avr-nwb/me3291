@@ -2,28 +2,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def generateBoundary(m):
+def generateBoundary(m, T):
     for index in range(1, len(m[0]) - 1):
-        m[0][index] = 1
+        m[0][index] = T
 
 
-tempx = np.arange(0, 1.1, 0.1)
-tempy = np.flip(np.arange(0, 1.1, 0.1))
-
-tempx, tempy = np.meshgrid(tempx, tempy)
-# print(tempx)
-# print(tempy)
-
-
-def plotMap(U, i, ax=None):
-    cp = ax.imshow(U, cmap=plt.get_cmap("hot"), interpolation="gaussian")
-    # cp = ax.plot_surface(tempx, tempy, U, cmap=plt.get_cmap(
-    #     "hot"))
-    # # ax.invert_yaxis()
+def plotMap(U, i, tempx, tempy, ax=None):
+    # cp = ax.imshow(U, cmap=plt.get_cmap("hot"), interpolation="gaussian")
+    cp = ax.plot_surface(tempx, tempy, U, cmap=plt.get_cmap(
+        "hot"))
     ax.set_title("Iteration: {0}".format(i))
-    # ax.set_xlabel('x')
-    # ax.set_ylabel('y')
-    # ax.set_zlabel('T(x,y,t)')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('T(x,y,t)')
     plt.colorbar(cp, ax=ax, fraction=0.046, pad=0.2)
 
 
@@ -53,17 +44,22 @@ def qn1a():
     dx = 1 / size
     grid = np.zeros((size+1, size+1))
 
+    tempx = np.arange(0, 1.1, 0.1)
+    tempy = np.flip(np.arange(0, 1.1, 0.1))
+
+    tempx, tempy = np.meshgrid(tempx, tempy)
+
     plotted_ptr = 0
     plot_finish = False
-    # np.set_printoptions(precision=3)
 
     if row_subplot_num * col_subplot_num != len(iter_to_plot):
         raise Exception("Invalid subplot layout, check row and col nums")
 
     fig, axes = plt.subplots(col_subplot_num, row_subplot_num, figsize=(
-        8, 8))
-    generateBoundary(grid)
+        8, 8), subplot_kw={"projection": "3d"})
+    generateBoundary(grid, T)
     gridRef = np.copy(grid)
+
     converged = False
     i = 0
     while not converged:
@@ -88,7 +84,7 @@ def qn1a():
             if i == iter_to_plot[plotted_ptr]:
                 print("Iteration: {0}\n{1}\n\n".format(i, grid))
                 ax = axes.flatten()
-                plotMap(grid, i, ax[plotted_ptr])
+                plotMap(grid, i, tempx, tempy, ax[plotted_ptr])
                 plotted_ptr += 1
             if plotted_ptr == len(iter_to_plot):
                 plot_finish = True

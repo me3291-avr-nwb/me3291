@@ -19,5 +19,5 @@ env\Script\activate
 Run main script
 
 ```bash
-python main.py
+python main.py -q QUESTION_NUMBER
 ```
